@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nirvana — Login</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<div class="auth-wrapper">
+
+  <!-- LEFT PANEL -->
+  <div class="auth-left">
+    <div class="auth-logo">Nirvana</div>
+    <h1 class="auth-tagline">Your mind deserves<br>a safe space.</h1>
+    <p class="auth-sub">Track your moods, reflect through journaling, talk to an AI companion, and get weekly wellness insights — all in one place.</p>
+
+    <div class="auth-features">
+      <div class="auth-feature-item">
+        <div class="auth-feature-dot"></div>
+        Daily mood tracking with trends
+      </div>
+      <div class="auth-feature-item">
+        <div class="auth-feature-dot"></div>
+        Private journal with emotion analysis
+      </div>
+      <div class="auth-feature-item">
+        <div class="auth-feature-dot"></div>
+        AI companion that knows your history
+      </div>
+      <div class="auth-feature-item">
+        <div class="auth-feature-dot"></div>
+        Weekly wellness reports
+      </div>
+      <div class="auth-feature-item">
+        <div class="auth-feature-dot"></div>
+        Nearby mental health clinic finder
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="auth-right">
+    <div class="auth-card">
+
+      <!-- TABS -->
+      <div class="flex-center gap-8 mb-24" style="background:var(--cream-mid);border-radius:var(--radius-sm);padding:4px;">
+        <button id="tab-login" onclick="showTab('login')"
+          style="flex:1;padding:9px;border:none;border-radius:6px;font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer;background:var(--white);color:var(--text-dark);box-shadow:var(--shadow-sm);transition:var(--transition);">
+          Log in
+        </button>
+        <button id="tab-signup" onclick="showTab('signup')"
+          style="flex:1;padding:9px;border:none;border-radius:6px;font-family:var(--font-body);font-size:14px;cursor:pointer;background:transparent;color:var(--text-soft);transition:var(--transition);">
+          Sign up
+        </button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="form-login">
+        <h2>Welcome back</h2>
+        <p class="auth-welcome">Sign in to continue your wellness journey.</p>
+
+        <div class="form-group">
+          <label class="form-label">Email address</label>
+          <div class="input-wrapper">
+            <span class="input-icon">✉️</span>
+            <input type="email" id="login-email" class="form-input" placeholder="you@example.com" />
+          </div>
+          <span class="form-error" id="login-email-err">Please enter a valid email.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="login-password" class="form-input" placeholder="Your password" />
+          </div>
+          <span class="form-error" id="login-pass-err">Password is required.</span>
+        </div>
+
+        <button class="btn btn-primary btn-full btn-lg mt-8" onclick="handleLogin()">
+          <span id="login-btn-text">Sign in</span>
+          <span id="login-spinner" class="spinner hidden" style="border-color:rgba(255,255,255,0.3);border-top-color:white;width:16px;height:16px;"></span>
+        </button>
+
+        <p class="text-center text-sm mt-16" style="color:var(--text-soft);">
+          Don't have an account?
+          <a href="#" onclick="showTab('signup')" style="color:var(--teal);font-weight:500;">Sign up free</a>
+        </p>
+      </div>
+
+      <!-- SIGNUP FORM -->
+      <div id="form-signup" class="hidden">
+        <h2>Create account</h2>
+        <p class="auth-welcome">Start your mental wellness journey today.</p>
+
+        <div class="form-group">
+          <label class="form-label">Full name</label>
+          <div class="input-wrapper">
+            <span class="input-icon">👤</span>
+            <input type="text" id="signup-name" class="form-input" placeholder="Your full name" />
+          </div>
+          <span class="form-error" id="signup-name-err">Name is required.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email address</label>
+          <div class="input-wrapper">
+            <span class="input-icon">✉️</span>
+            <input type="email" id="signup-email" class="form-input" placeholder="you@example.com" />
+          </div>
+          <span class="form-error" id="signup-email-err">Please enter a valid email.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="signup-password" class="form-input" placeholder="At least 6 characters" />
+          </div>
+          <span class="form-error" id="signup-pass-err">Password must be at least 6 characters.</span>
+        </div>
+
+        <button class="btn btn-primary btn-full btn-lg mt-8" onclick="handleSignup()">
+          <span id="signup-btn-text">Create account</span>
+          <span id="signup-spinner" class="spinner hidden" style="border-color:rgba(255,255,255,0.3);border-top-color:white;width:16px;height:16px;"></span>
+        </button>
+
+        <p class="text-center text-sm mt-16" style="color:var(--text-soft);">
+          Already have an account?
+          <a href="#" onclick="showTab('login')" style="color:var(--teal);font-weight:500;">Log in</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+</body>
+</html>

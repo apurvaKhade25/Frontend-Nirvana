@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nirvana — Mood Tracker</title>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<div class="page-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-text">Nirvana</span>
+      <span class="logo-sub">Wellness</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">?</div>
+      <div>
+        <div class="sidebar-user-name" id="sidebar-name">Loading...</div>
+        <div class="sidebar-user-tag">✦ Wellness member</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="mood.html"      class="nav-item active"><span class="nav-icon">😊</span> Mood Tracker</a>
+      <a href="journal.html"   class="nav-item"><span class="nav-icon">📓</span> Journal</a>
+      <div class="nav-section-label">AI Features</div>
+      <a href="chat.html"      class="nav-item"><span class="nav-icon">🤖</span> AI Companion</a>
+      <a href="report.html"    class="nav-item"><span class="nav-icon">📊</span> Wellness Report</a>
+      <div class="nav-section-label">Help</div>
+      <a href="clinics.html"   class="nav-item"><span class="nav-icon">🏥</span> Find Clinics</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Log out</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <div class="topbar">
+      <div class="topbar-title">
+        <h2>Mood Tracker 😊</h2>
+        <p>Log how you feel each day and watch your patterns.</p>
+      </div>
+    </div>
+
+    <div class="grid-2 mb-24" style="align-items:start;">
+
+      <!-- LOG MOOD FORM -->
+      <div class="card card-lg">
+        <div class="card-header">
+          <div>
+            <div class="card-title">How are you feeling today?</div>
+            <div class="card-subtitle" id="form-date">Loading...</div>
+          </div>
+          <span class="icon-box icon-box-teal icon-box-lg">😊</span>
+        </div>
+
+        <!-- Score slider -->
+        <div class="form-group">
+          <label class="form-label">Mood score — <span id="score-display" style="color:var(--teal);font-weight:600;">5</span> / 10</label>
+          <input type="range" min="1" max="10" value="5" class="mood-slider" id="mood-score"
+            oninput="updateScore(this.value)" />
+          <div class="mood-labels">
+            <span>😞 Low</span>
+            <span>😐 Okay</span>
+            <span>😄 Great</span>
+          </div>
+        </div>
+
+        <!-- Mood label chips -->
+        <div class="form-group">
+          <label class="form-label">What best describes your mood?</label>
+          <div class="mood-chip-row" id="mood-chips">
+            <div class="mood-chip" onclick="selectChip(this, 'happy')">😄 Happy</div>
+            <div class="mood-chip" onclick="selectChip(this, 'calm')">😌 Calm</div>
+            <div class="mood-chip" onclick="selectChip(this, 'anxious')">😰 Anxious</div>
+            <div class="mood-chip" onclick="selectChip(this, 'sad')">😢 Sad</div>
+            <div class="mood-chip" onclick="selectChip(this, 'angry')">😠 Angry</div>
+            <div class="mood-chip" onclick="selectChip(this, 'excited')">🤩 Excited</div>
+            <div class="mood-chip" onclick="selectChip(this, 'tired')">😴 Tired</div>
+            <div class="mood-chip" onclick="selectChip(this, 'grateful')">🙏 Grateful</div>
+          </div>
+          <span class="form-error" id="chip-err">Please select a mood label.</span>
+        </div>
+
+        <!-- Optional note -->
+        <div class="form-group">
+          <label class="form-label">Add a note <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+          <textarea id="mood-note" class="form-textarea" rows="3"
+            placeholder="What's on your mind? Any reason for this mood?"></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-full btn-lg" onclick="logMood()">
+          <span id="log-btn-text">Save mood</span>
+          <span id="log-spinner" class="spinner hidden" style="border-color:rgba(255,255,255,0.3);border-top-color:white;width:16px;height:16px;"></span>
+        </button>
+      </div>
+
+      <!-- HISTORY PANEL -->
+      <div>
+        <!-- Weekly average stat -->
+        <div class="card card-teal mb-16" style="display:flex;align-items:center;gap:20px;">
+          <div>
+            <div style="font-size:2.5rem;font-weight:600;color:var(--teal-dark);" id="weekly-avg">—</div>
+            <div style="font-size:13px;color:var(--teal);margin-top:2px;">Weekly average</div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:12px;color:var(--teal-dark);margin-bottom:6px;">Week trend</div>
+            <div id="mini-chart" style="display:flex;align-items:flex-end;gap:5px;height:48px;"></div>
+          </div>
+        </div>
+
+        <!-- History list -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent entries</div>
+            <span class="badge badge-teal" id="total-count">0 entries</span>
+          </div>
+          <div id="mood-history">
+            <div class="loading-overlay" style="padding:20px;"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<script>
+const API_BASE = 'http://localhost:8080';
+const token    = localStorage.getItem('nirvana_token');
+const userStr  = localStorage.getItem('nirvana_user');
+
+if (!token) window.location.href = 'index.html';
+
+// const user = userStr ? JSON.parse(userStr) : { name: 'Friend' };
+let selectedLabel = '';
+let allMoods = [];
+
+// Setup
+// document.getElementById('sidebar-name').textContent = user.name;
+// document.getElementById('sidebar-avatar').textContent = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+const user = userStr ? JSON.parse(userStr) : {};
+const displayName = user.name || user.username || 'Friend';
+
+document.getElementById('sidebar-name').textContent = displayName;
+document.getElementById('sidebar-avatar').textContent = displayName
+    .split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+document.getElementById('form-date').textContent = new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+function showToast(msg, type='success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type==='error'?'error':''}`;
+  t.innerHTML = `<span>${type==='error'?'❌':'✅'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.animation = 'toastOut 0.3s ease forwards'; setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+function logout() {
+  localStorage.removeItem('nirvana_token');
+  localStorage.removeItem('nirvana_user');
+  window.location.href = 'index.html';
+}
+
+function updateScore(val) {
+  document.getElementById('score-display').textContent = val;
+  const colors = { 1:'#d85a6a', 2:'#d85a6a', 3:'#e87040', 4:'#ef9f27', 5:'#ef9f27', 6:'#a5b84a', 7:'#3d8b75', 8:'#3d8b75', 9:'#0f4a3a', 10:'#0f4a3a' };
+  document.getElementById('score-display').style.color = colors[val] || 'var(--teal)';
+}
+
+function selectChip(el, label) {
+  document.querySelectorAll('.mood-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedLabel = label;
+  document.getElementById('chip-err').classList.remove('show');
+}
+
+function renderHistory(moods) {
+  allMoods = moods;
+  const container = document.getElementById('mood-history');
+  document.getElementById('total-count').textContent = `${moods.length} entr${moods.length === 1 ? 'y' : 'ies'}`;
+
+  if (moods.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">😶</div>
+        <h4>No entries yet</h4>
+        <p>Log your first mood using the form on the left.</p>
+      </div>`;
+    return;
+  }
+
+  // Weekly average
+  const recent7 = moods.slice(-7);
+  // const avg = (recent7.reduce((s, m) => s + (m.score || m.mood_score || 0), 0) / recent7.length).toFixed(1);
+  // Fix avg
+const avg = (recent7.reduce((s, m) => s + (m.moodScore || 0), 0) / recent7.length).toFixed(1);
+  document.getElementById('weekly-avg').textContent = avg;
+
+  // Mini chart
+  const miniChart = document.getElementById('mini-chart');
+  miniChart.innerHTML = recent7.map(m => {
+    const s = m.score || m.mood_score || 0;
+    const h = Math.max(4, (s / 10) * 48);
+    const c = s <= 3 ? '#d85a6a' : s <= 6 ? '#ef9f27' : '#3d8b75';
+    return `<div style="flex:1;height:${h}px;background:${c};border-radius:3px 3px 0 0;opacity:0.8;"></div>`;
+  }).join('');
+
+  // List
+  const labelIcons = { happy:'😄', calm:'😌', anxious:'😰', sad:'😢', angry:'😠', excited:'🤩', tired:'😴', grateful:'🙏' };
+
+  container.innerHTML = [...moods].reverse().slice(0, 10).map(m => {
+    // const score = m.score || m.mood_score || 0;
+    // const label = m.label || m.mood_label || 'general';
+    // const note  = m.note || m.mood_note || '';
+    // const date  = new Date(m.created_at || m.date || Date.now())
+    const score = m.moodScore || 0;
+    const label = m.moodLabel || 'general';
+    const note  = m.note || '';
+    const date  = new Date(m.loggedAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    const color = score <= 3 ? 'var(--rose)' : score <= 6 ? 'var(--amber)' : 'var(--teal)';
+    const bgColor = score <= 3 ? '#fde8eb' : score <= 6 ? '#faeeda' : 'var(--teal-pale)';
+
+    return `
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--cream-dark);">
+        <div style="width:44px;height:44px;border-radius:12px;background:${bgColor};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+          <span style="font-size:16px;">${labelIcons[label] || '😊'}</span>
+          <span style="font-size:10px;font-weight:600;color:${color};">${score}</span>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;color:var(--text-dark);text-transform:capitalize;">${label}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:1px;">${date}</div>
+          ${note ? `<div style="font-size:12px;color:var(--text-soft);margin-top:4px;">${note}</div>` : ''}
+        </div>
+        <div style="font-size:1.5rem;font-weight:600;color:${color};">${score}<span style="font-size:11px;color:var(--text-muted);">/10</span></div>
+      </div>`;
+  }).join('');
+}
+
+async function loadMoods() {
+    try {
+        const res = await fetch(`${API_BASE}/mood/history`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        console.log('Mood data:', JSON.stringify(data)); // ← add this
+        renderHistory(Array.isArray(data) ? data : data.moods || []);
+    } catch (e) {
+        console.error('loadMoods error:', e);
+        renderHistory([]);
+    }
+}
+  // try {
+  //   const res = await fetch(`${API_BASE}/mood/history`, {                 //history in mood
+  //     headers: { 'Authorization': `Bearer ${token}` }
+  //   });
+  //   const data = await res.json();
+  //   renderHistory(data.moods || data || []);
+  // } catch (e) {
+  //   // Demo data
+  //   renderHistory([
+  //     { score: 7, label: 'calm',     note: 'Had a peaceful morning.',          created_at: new Date(Date.now() - 0).toISOString() },
+  //     { score: 5, label: 'anxious',  note: 'Worried about upcoming deadline.',  created_at: new Date(Date.now() - 86400000).toISOString() },
+  //     { score: 8, label: 'happy',    note: 'Great workout session today!',       created_at: new Date(Date.now() - 172800000).toISOString() },
+  //     { score: 4, label: 'tired',    note: 'Didn\'t sleep well last night.',     created_at: new Date(Date.now() - 259200000).toISOString() },
+  //     { score: 6, label: 'grateful', note: 'Spent quality time with family.',    created_at: new Date(Date.now() - 345600000).toISOString() }
+  //   ]);
+  // }
+
+
+async function logMood() {
+  const score = parseInt(document.getElementById('mood-score').value);
+  const note  = document.getElementById('mood-note').value.trim();
+
+  if (!selectedLabel) {
+    document.getElementById('chip-err').classList.add('show');
+    return;
+  }
+
+  document.getElementById('log-btn-text').textContent = 'Saving...';
+  document.getElementById('log-spinner').classList.remove('hidden');
+
+  // const payload = { score, label: selectedLabel, note };
+  // ✅ Change to
+const payload = { moodScore: score, moodLabel: selectedLabel, note };
+
+  try {
+    const res = await fetch(`${API_BASE}/mood`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      showToast('Mood logged! 🌿');
+      document.getElementById('mood-note').value = '';
+      document.querySelectorAll('.mood-chip').forEach(c => c.classList.remove('selected'));
+      selectedLabel = '';
+      document.getElementById('mood-score').value = 5;
+      updateScore(5);
+      loadMoods();
+    } else {
+      const d = await res.json();
+      showToast(d.message || 'Error saving mood.', 'error');
+    }
+  } catch (e) {
+    // Demo mode
+    showToast('Mood logged (demo)! 🌿');
+    document.getElementById('mood-note').value = '';
+    document.querySelectorAll('.mood-chip').forEach(c => c.classList.remove('selected'));
+    selectedLabel = '';
+    document.getElementById('mood-score').value = 5;
+    updateScore(5);
+    // Add to demo list
+    allMoods.push({ score, label: selectedLabel || 'general', note, created_at: new Date().toISOString() });
+    loadMoods();
+  } finally {
+    document.getElementById('log-btn-text').textContent = 'Save mood';
+    document.getElementById('log-spinner').classList.add('hidden');
+  }
+}
+
+loadMoods();
+</script>
+
+</body>
+</html>

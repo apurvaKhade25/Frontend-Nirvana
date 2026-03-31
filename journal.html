@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nirvana — Journal</title>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<div class="page-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-text">Nirvana</span>
+      <span class="logo-sub">Wellness</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">?</div>
+      <div>
+        <div class="sidebar-user-name" id="sidebar-name">Loading...</div>
+        <div class="sidebar-user-tag">✦ Wellness member</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="mood.html"      class="nav-item"><span class="nav-icon">😊</span> Mood Tracker</a>
+      <a href="journal.html"   class="nav-item active"><span class="nav-icon">📓</span> Journal</a>
+      <div class="nav-section-label">AI Features</div>
+      <a href="chat.html"      class="nav-item"><span class="nav-icon">🤖</span> AI Companion</a>
+      <a href="report.html"    class="nav-item"><span class="nav-icon">📊</span> Wellness Report</a>
+      <div class="nav-section-label">Help</div>
+      <a href="clinics.html"   class="nav-item"><span class="nav-icon">🏥</span> Find Clinics</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Log out</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <div class="topbar">
+      <div class="topbar-title">
+        <h2>Journal 📓</h2>
+        <p>Write freely. Your entries are private and analysed for emotional patterns.</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="openModal()">+ New entry</button>
+      </div>
+    </div>
+
+    <div class="grid-2" style="align-items:start;">
+
+      <!-- WRITE NEW ENTRY -->
+      <div class="card card-lg">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Write a new entry</div>
+            <div class="card-subtitle">Express yourself freely</div>
+          </div>
+          <span class="icon-box icon-box-amber icon-box-lg">📓</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input type="text" id="entry-title" class="form-input" placeholder="Give your entry a title..." />
+          <span class="form-error" id="title-err">Title is required.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Write your thoughts</label>
+          <textarea id="entry-content" class="form-textarea" rows="8"
+            placeholder="What's on your mind today? How are you feeling? Write anything you want — this is your safe space..."
+            style="min-height:200px;"></textarea>
+          <span class="form-error" id="content-err">Please write something.</span>
+          <div class="form-hint" id="word-count">0 words</div>
+        </div>
+
+        <div style="background:var(--teal-pale);border-radius:var(--radius-md);padding:14px;margin-bottom:20px;">
+          <div style="font-size:12px;color:var(--teal-dark);display:flex;align-items:center;gap:8px;">
+            <span>🧠</span>
+            <span>AI will automatically analyse the emotions in your entry after you save it.</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-full btn-lg" onclick="saveEntry()">
+          <span id="save-btn-text">Save entry</span>
+          <span id="save-spinner" class="spinner hidden" style="border-color:rgba(255,255,255,0.3);border-top-color:white;width:16px;height:16px;"></span>
+        </button>
+      </div>
+
+      <!-- JOURNAL LIST -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Your entries</div>
+          <span class="badge badge-amber" id="entry-count">0 entries</span>
+        </div>
+        <div id="journal-list">
+          <div class="loading-overlay" style="padding:24px;"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<!-- VIEW ENTRY MODAL -->
+<div class="modal-overlay" id="view-modal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <h3 id="modal-title">Entry title</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:20px;" id="modal-date"></div>
+
+    <div id="modal-content" style="font-size:14px;color:var(--text-mid);line-height:1.8;white-space:pre-wrap;max-height:300px;overflow-y:auto;"></div>
+
+    <div id="modal-emotions" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--cream-dark);">
+      <div style="font-size:12px;font-weight:500;color:var(--text-dark);margin-bottom:10px;">🧠 Detected emotions</div>
+      <div id="modal-emotion-tags" class="flex-center gap-8" style="flex-wrap:wrap;"></div>
+    </div>
+
+    <button class="btn btn-ghost btn-full mt-16" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+const API_BASE = 'http://localhost:8080';
+const token    = localStorage.getItem('nirvana_token');
+const userStr  = localStorage.getItem('nirvana_user');
+
+if (!token) window.location.href = 'index.html';
+
+const user = userStr ? JSON.parse(userStr) : { name: 'Friend' };
+
+// document.getElementById('sidebar-name').textContent = user.name;
+// document.getElementById('sidebar-avatar').textContent = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+const displayName = user.name || user.username || 'Friend';
+document.getElementById('sidebar-name').textContent = displayName;
+document.getElementById('sidebar-avatar').textContent = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+
+function showToast(msg, type='success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type==='error'?'error':''}`;
+  t.innerHTML = `<span>${type==='error'?'❌':'✅'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.animation = 'toastOut 0.3s ease forwards'; setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+function logout() {
+  localStorage.removeItem('nirvana_token');
+  localStorage.removeItem('nirvana_user');
+  window.location.href = 'index.html';
+}
+
+// Word count
+document.getElementById('entry-content').addEventListener('input', function() {
+  const words = this.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+  document.getElementById('word-count').textContent = `${words} word${words !== 1 ? 's' : ''}`;
+});
+
+// Emotion colours
+const emotionStyle = {
+  joy:      { bg: 'var(--teal-pale)',  color: 'var(--teal-dark)', icon: '😄' },
+  sadness:  { bg: '#fde8eb',           color: '#8b2030',          icon: '😢' },
+  anger:    { bg: '#fde8eb',           color: '#8b2030',          icon: '😠' },
+  fear:     { bg: '#faeeda',           color: '#633806',          icon: '😰' },
+  surprise: { bg: '#eeedfe',        color: '#3c3489',          icon: '😲' },
+  disgust:  { bg: ('#eaf3de'),     color: '#3b6d11',          icon: '🤢' },
+  calm:     { bg: '#e6f1fb',           color: '#185fa5',          icon: '😌' }
+};
+
+function var_(v) { return v; }
+
+function renderJournals(journals) {
+  const list = document.getElementById('journal-list');
+  document.getElementById('entry-count').textContent = `${journals.length} entr${journals.length === 1 ? 'y' : 'ies'}`;
+
+  if (journals.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📓</div>
+        <h4>No entries yet</h4>
+        <p>Write your first journal entry using the form on the left.</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = [...journals].reverse().map((j, i) => {
+    // const date = new Date(j.created_at || j.date || Date.now()).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    const date = new Date(j.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    const preview = (j.content || '').slice(0, 100) + ((j.content || '').length > 100 ? '...' : '');
+    const emotions = j.emotions || [];
+    const emotionHtml = emotions.slice(0,2).map(e => {
+      const s = emotionStyle[e.name?.toLowerCase()] || { bg:'var(--cream-mid)', color:'var(--text-mid)', icon:'💭' };
+      return `<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${s.bg};color:${s.color};">${s.icon} ${e.name}</span>`;
+    }).join('');
+
+    return `
+      <div style="padding:14px;border:1px solid var(--cream-dark);border-radius:var(--radius-md);margin-bottom:10px;cursor:pointer;transition:var(--transition);"
+           onmouseenter="this.style.borderColor='var(--teal)';this.style.boxShadow='var(--shadow-sm)'"
+           onmouseleave="this.style.borderColor='var(--cream-dark)';this.style.boxShadow='none'"
+           onclick="viewEntry(${i}, ${JSON.stringify(journals).replace(/"/g, '&quot;')})">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:14px;font-weight:500;color:var(--text-dark);">${j.title || 'Untitled'}</span>
+          <span style="font-size:11px;color:var(--text-muted);">${date}</span>
+        </div>
+        <p style="font-size:12px;color:var(--text-soft);line-height:1.5;margin:0 0 8px;">${preview}</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">${emotionHtml}</div>
+      </div>`;
+  }).join('');
+}
+
+function viewEntry(idx, journalsStr) {
+  // Use dataset to pass entry data
+  const journals = typeof journalsStr === 'string' ? JSON.parse(journalsStr.replace(/&quot;/g, '"')) : journalsStr;
+  const journals_rev = [...journals].reverse();
+  const j = journals_rev[idx];
+  if (!j) return;
+
+  document.getElementById('modal-title').textContent = j.title || 'Untitled';
+  // document.getElementById('modal-date').textContent = new Date(j.created_at || j.date || Date.now()).toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('modal-date').textContent = new Date(j.createdAt).toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  // document.getElementById('modal-date').textContent = new Date(j.created_at).toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('modal-content').textContent = j.content || '';
+
+  const emotions = j.emotions || [];
+  if (emotions.length > 0) {
+    document.getElementById('modal-emotions').style.display = 'block';
+    document.getElementById('modal-emotion-tags').innerHTML = emotions.map(e => {
+      const s = emotionStyle[e.name?.toLowerCase()] || { bg:'var(--cream-mid)', color:'var(--text-mid)', icon:'💭' };
+      const pct = Math.round((e.score || 0) * 100);
+      return `<span style="padding:5px 12px;border-radius:20px;background:${s.bg};color:${s.color};font-size:12px;">${s.icon} ${e.name} ${pct}%</span>`;
+    }).join('');
+  } else {
+    document.getElementById('modal-emotions').style.display = 'none';
+  }
+
+  document.getElementById('view-modal').classList.add('open');
+}
+
+function openModal()  { document.getElementById('view-modal').classList.add('open'); }
+function closeModal() { document.getElementById('view-modal').classList.remove('open'); }
+
+// Close modal on overlay click
+document.getElementById('view-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+let allJournals = [];
+
+async function loadJournals() {
+  try {
+    const res = await fetch(`${API_BASE}/journal/history`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    allJournals = data.journals || data || [];
+    renderJournals(allJournals);
+  } catch (e) {
+    // Demo data
+    allJournals = [
+      {
+        title: 'Morning clarity',
+        content: 'Woke up feeling surprisingly refreshed today. Did a 10-minute meditation and it set the right tone for the morning. Grateful for small peaceful moments like these.',
+        created_at: new Date().toISOString(),
+        emotions: [{ name: 'Joy', score: 0.72 }, { name: 'Calm', score: 0.20 }]
+      },
+      {
+        title: 'Tough afternoon thoughts',
+        content: 'The presentation didn\'t go as planned. I kept stumbling over my words and felt like everyone was judging me. I know logically that\'s not true, but the feeling lingers.',
+        created_at: new Date(Date.now() - 86400000).toISOString(),
+        emotions: [{ name: 'Fear', score: 0.55 }, { name: 'Sadness', score: 0.30 }]
+      },
+      {
+        title: 'Weekend reflections',
+        content: 'Spent the afternoon with family. We cooked together and watched old home videos. It felt healing in a way — being reminded of simpler, happier times.',
+        created_at: new Date(Date.now() - 172800000).toISOString(),
+        emotions: [{ name: 'Joy', score: 0.60 }, { name: 'Surprise', score: 0.25 }]
+      }
+    ];
+    renderJournals(allJournals);
+  }
+}
+
+async function saveEntry() {
+  const title   = document.getElementById('entry-title').value.trim();
+  const content = document.getElementById('entry-content').value.trim();
+  let valid = true;
+
+  document.querySelectorAll('.form-error').forEach(e => e.classList.remove('show'));
+
+  if (!title) {
+    document.getElementById('entry-title').classList.add('error');
+    document.getElementById('title-err').classList.add('show');
+    valid = false;
+  }
+
+  if (!content) {
+    document.getElementById('entry-content').classList.add('error');
+    document.getElementById('content-err').classList.add('show');
+    valid = false;
+  }
+
+  if (!valid) return;
+
+  document.getElementById('save-btn-text').textContent = 'Saving...';
+  document.getElementById('save-spinner').classList.remove('hidden');
+
+  try {
+    const res = await fetch(`${API_BASE}/journal`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, content })
+    });
+
+    if (res.ok) {
+      showToast('Entry saved! AI is analysing emotions... 🧠');
+      document.getElementById('entry-title').value   = '';
+      document.getElementById('entry-content').value = '';
+      document.getElementById('word-count').textContent = '0 words';
+      loadJournals();
+    } else {
+      const d = await res.json();
+      showToast(d.message || 'Error saving entry.', 'error');
+    }
+  } catch (e) {
+    // Demo mode
+    showToast('Entry saved (demo)! 🧠');
+    allJournals.push({ title, content, created_at: new Date().toISOString(), emotions: [] });
+    document.getElementById('entry-title').value   = '';
+    document.getElementById('entry-content').value = '';
+    document.getElementById('word-count').textContent = '0 words';
+    renderJournals(allJournals);
+  } finally {
+    document.getElementById('save-btn-text').textContent = 'Save entry';
+    document.getElementById('save-spinner').classList.add('hidden');
+  }
+}
+
+loadJournals();
+</script>
+
+</body>
+</html>
