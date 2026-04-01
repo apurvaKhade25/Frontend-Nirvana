@@ -1,262 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Nirvana — Find Clinics</title>
-  <link rel="stylesheet" href="css/style.css"/>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nirvana — Find Clinics</title>
+
+<link rel="stylesheet" href="css/style.css"/>
+
+<!-- 🌍 Leaflet Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+/* 🔥 EXTRA UI IMPROVEMENT */
+.page-hero {
+  background: linear-gradient(135deg, #4fd1c5, #6b73ff);
+  color: white;
+  padding: 25px;
+  border-radius: 16px;
+}
+
+#map {
+  height: 320px;
+  border-radius: 16px;
+}
+
+.clinic-card:hover {
+  transform: translateY(-3px);
+  transition: 0.2s;
+}
+</style>
+
 </head>
+
 <body>
 
 <div id="toast-container"></div>
 
 <div class="page-wrapper">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span class="logo-text">Nirvana</span>
-      <span class="logo-sub">Wellness</span>
-    </div>
-    <div class="sidebar-user">
-      <div class="sidebar-avatar" id="sidebar-avatar">?</div>
-      <div>
-        <div class="sidebar-user-name" id="sidebar-name">Loading...</div>
-        <div class="sidebar-user-tag">✦ Wellness member</div>
-      </div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Main</div>
-      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
-      <a href="mood.html"      class="nav-item"><span class="nav-icon">😊</span> Mood Tracker</a>
-      <a href="journal.html"   class="nav-item"><span class="nav-icon">📓</span> Journal</a>
-      <div class="nav-section-label">AI Features</div>
-      <a href="chat.html"      class="nav-item"><span class="nav-icon">🤖</span> AI Companion</a>
-      <a href="report.html"    class="nav-item"><span class="nav-icon">📊</span> Wellness Report</a>
-      <div class="nav-section-label">Help</div>
-      <a href="clinics.html"   class="nav-item active"><span class="nav-icon">🏥</span> Find Clinics</a>
-    </nav>
-    <div class="sidebar-footer">
-      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Log out</a>
-    </div>
-  </aside>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-text">Nirvana</span>
+    <span class="logo-sub">Wellness</span>
+  </div>
 
-  <!-- MAIN -->
-  <main class="main-content">
-
-    <div class="topbar">
-      <div class="topbar-title">
-        <h2>Find Nearby Clinics 🏥</h2>
-        <p>Mental health clinics near your current location.</p>
-      </div>
+  <div class="sidebar-user">
+    <div class="sidebar-avatar" id="sidebar-avatar">?</div>
+    <div>
+      <div class="sidebar-user-name" id="sidebar-name">Loading...</div>
+      <div class="sidebar-user-tag">✦ Wellness member</div>
     </div>
+  </div>
 
-    <!-- Hero -->
-    <div class="page-hero mb-24">
-      <h2>You are not alone 🌿</h2>
-      <p>Reaching out for help is one of the bravest things you can do. Find a professional near you today.</p>
-    </div>
+  <nav class="sidebar-nav">
+    <a href="dashboard.html" class="nav-item">🏠 Dashboard</a>
+    <a href="mood.html" class="nav-item">😊 Mood</a>
+    <a href="journal.html" class="nav-item">📓 Journal</a>
+    <a href="chat.html" class="nav-item">🤖 AI</a>
+    <a href="report.html" class="nav-item">📊 Report</a>
+    <a href="clinics.html" class="nav-item active">🏥 Clinics</a>
+  </nav>
 
-    <!-- Location button -->
-    <div class="card mb-24" id="location-card">
-      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-        <div class="icon-box icon-box-lg icon-box-teal">📍</div>
-        <div style="flex:1;">
-          <div style="font-size:15px;font-weight:500;color:var(--text-dark);margin-bottom:4px;">Allow location access</div>
-          <p style="font-size:13px;margin:0;">We'll use your location to find mental health clinics within 10km of you.</p>
-        </div>
-        <button class="btn btn-primary" onclick="getLocation()" id="location-btn">
-          <span id="loc-btn-text">📍 Use my location</span>
-          <span id="loc-spinner" class="spinner hidden" style="border-color:rgba(255,255,255,0.3);border-top-color:white;width:16px;height:16px;"></span>
-        </button>
-      </div>
+  <div class="sidebar-footer">
+    <a href="#" onclick="logout()">🚪 Logout</a>
+  </div>
+</aside>
 
-      <div id="location-status" style="margin-top:14px;display:none;">
-        <div class="alert alert-success" id="loc-success" style="display:none;">
-          <span>✅</span> <span id="loc-text">Location found!</span>
-        </div>
-        <div class="alert alert-danger" id="loc-error" style="display:none;">
-          <span>❌</span> <span id="loc-err-text">Could not get location.</span>
-        </div>
-      </div>
-    </div>
+<!-- MAIN -->
+<main class="main-content">
 
-    <!-- Clinics list -->
-    <div id="clinics-area">
-      <div class="card">
-        <div class="empty-state">
-          <div class="empty-icon">🏥</div>
-          <h4>Waiting for your location</h4>
-          <p>Click "Use my location" above to find mental health clinics near you.</p>
-        </div>
-      </div>
-    </div>
-
-  </main>
+<div class="topbar">
+  <h2>Find Nearby Clinics 🏥</h2>
 </div>
 
+<!-- HERO -->
+<div class="page-hero">
+  <h2>You are not alone 🌿</h2>
+  <p>Find mental health support near you instantly.</p>
+</div>
+
+<br>
+
+<!-- LOCATION BUTTON -->
+<div class="card">
+  <button class="btn btn-primary" onclick="getLocation()">
+    📍 Use My Location
+  </button>
+</div>
+
+<br>
+
+<!-- MAP -->
+<div class="card">
+  <div id="map"></div>
+</div>
+
+<br>
+
+<!-- CLINICS -->
+<div id="clinics-area"></div>
+
+</main>
+</div>
+
+<!-- 🌍 Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script>
-const API_BASE = 'http://localhost:8080';
-const token    = localStorage.getItem('nirvana_token');
-const userStr  = localStorage.getItem('nirvana_user');
 
-if (!token) window.location.href = 'index.html';
+const token = localStorage.getItem('nirvana_token');
 
-const user = userStr ? JSON.parse(userStr) : { name: 'Friend' };
-
-document.getElementById('sidebar-name').textContent = user.name;
-document.getElementById('sidebar-avatar').textContent = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
-
-function logout() {
-  localStorage.removeItem('nirvana_token');
-  localStorage.removeItem('nirvana_user');
-  window.location.href = 'index.html';
+if (!token) {
+  alert("Login first");
 }
 
-function showToast(msg, type='success') {
-  const c = document.getElementById('toast-container');
-  const t = document.createElement('div');
-  t.className = `toast ${type==='error'?'error':''}`;
-  t.innerHTML = `<span>${type==='error'?'❌':'✅'}</span><span>${msg}</span>`;
-  c.appendChild(t);
-  setTimeout(() => { t.style.animation = 'toastOut 0.3s ease forwards'; setTimeout(() => t.remove(), 300); }, 3500);
+let map;
+
+/* 🚀 MAP FUNCTION */
+function loadMap(lat, lng) {
+  map = L.map('map').setView([lat, lng], 13);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  L.marker([lat, lng]).addTo(map)
+    .bindPopup("📍 You are here")
+    .openPopup();
 }
 
-function starsHtml(rating) {
-  const full  = Math.floor(rating);
-  const half  = rating % 1 >= 0.5 ? 1 : 0;
-  const empty = 5 - full - half;
-  return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
-}
-
-function renderClinics(clinics) {
-  const area = document.getElementById('clinics-area');
-
-  if (!clinics || clinics.length === 0) {
-    area.innerHTML = `
-      <div class="card">
-        <div class="empty-state">
-          <div class="empty-icon">🔍</div>
-          <h4>No clinics found nearby</h4>
-          <p>Try a different location or search area.</p>
-        </div>
-      </div>`;
-    return;
-  }
-
-  area.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <h3 style="font-size:15px;font-weight:500;color:var(--text-dark);">Found ${clinics.length} clinic${clinics.length !== 1 ? 's' : ''} nearby</h3>
-      <span class="badge badge-teal">Within 10km</span>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:12px;">
-    ${clinics.map((clinic, i) => {
-      const rating   = clinic.rating || (4 + Math.random()).toFixed(1);
-      const distance = clinic.distance || `${(Math.random() * 8 + 0.5).toFixed(1)} km`;
-      const phone    = clinic.phone || clinic.formatted_phone_number || '';
-      const address  = clinic.address || clinic.vicinity || 'Address not available';
-      const name     = clinic.name || 'Mental Health Clinic';
-
-      const dotColors = ['var(--teal)', 'var(--purple)', 'var(--blue)', 'var(--amber)', 'var(--rose)'];
-      const dotColor  = dotColors[i % dotColors.length];
-
-      return `
-        <div class="clinic-card">
-          <div style="width:44px;height:44px;border-radius:12px;background:var(--teal-pale);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🏥</div>
-          <div class="clinic-info">
-            <div class="clinic-name">${name}</div>
-            <div class="clinic-address">📍 ${address}</div>
-            <div class="clinic-meta">
-              <span class="clinic-rating" style="color:var(--amber);">${starsHtml(parseFloat(rating))} ${parseFloat(rating).toFixed(1)}</span>
-              <span class="clinic-distance">· ${distance} away</span>
-              ${phone ? `<span class="clinic-phone">📞 ${phone}</span>` : ''}
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0;">
-            <div style="width:10px;height:10px;border-radius:50%;background:${dotColor};"></div>
-            ${phone ? `<a href="tel:${phone}" class="btn btn-secondary btn-sm" onclick="event.stopPropagation()">Call</a>` : ''}
-          </div>
-        </div>`;
-    }).join('')}
-    </div>`;
-}
-
+/* 📍 LOCATION */
 function getLocation() {
-  if (!navigator.geolocation) {
-    document.getElementById('location-status').style.display = 'block';
-    document.getElementById('loc-error').style.display = 'flex';
-    document.getElementById('loc-err-text').textContent = 'Geolocation is not supported by your browser.';
-    return;
-  }
+  navigator.geolocation.getCurrentPosition((pos) => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
 
-  document.getElementById('loc-btn-text').textContent = 'Getting location...';
-  document.getElementById('loc-spinner').classList.remove('hidden');
-  document.getElementById('location-btn').disabled = true;
+    loadMap(lat, lng);
 
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
+    showClinics();
 
-      document.getElementById('location-status').style.display = 'block';
-      document.getElementById('loc-success').style.display = 'flex';
-      document.getElementById('loc-text').textContent = `Location found: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-
-      document.getElementById('loc-btn-text').textContent = 'Searching clinics...';
-
-      try {
-        const res = await fetch(`${API_BASE}/clinics?lat=${lat}&lng=${lng}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        const data = await res.json();
-        renderClinics(data.clinics || data || []);
-        showToast(`Found ${(data.clinics || data || []).length} clinics nearby 🏥`);
-
-      } catch (e) {
-        // Demo clinics — using Mumbai as example (matches user's location)
-        const demoClinics = [
-          { name: 'Mpower — The Centre', address: 'Bandra West, Mumbai', rating: 4.8, distance: '1.2 km', phone: '+91-22-2655-3344' },
-          { name: 'Vandrevala Foundation', address: 'Andheri East, Mumbai', rating: 4.6, distance: '2.8 km', phone: '+91-1860-2662-345' },
-          { name: 'iCall Counselling Centre', address: 'TISS, Deonar, Mumbai', rating: 4.9, distance: '3.5 km', phone: '+91-9152987821' },
-          { name: 'Fortis Mental Health', address: 'Mulund West, Mumbai', rating: 4.5, distance: '5.1 km', phone: '+91-22-4545-2000' },
-          { name: 'Masina Hospital Psychiatry', address: 'Byculla, Mumbai', rating: 4.3, distance: '6.7 km', phone: '+91-22-2377-6300' }
-        ];
-        renderClinics(demoClinics);
-        showToast('Clinics found (demo mode) 🏥');
-      } finally {
-        document.getElementById('loc-btn-text').textContent = '📍 Use my location';
-        document.getElementById('loc-spinner').classList.add('hidden');
-        document.getElementById('location-btn').disabled = false;
-      }
-    },
-    (error) => {
-      document.getElementById('location-status').style.display = 'block';
-      document.getElementById('loc-error').style.display = 'flex';
-
-      const msgs = {
-        1: 'Location access denied. Please allow it in your browser settings.',
-        2: 'Location unavailable. Try again.',
-        3: 'Location request timed out. Try again.'
-      };
-
-      document.getElementById('loc-err-text').textContent = msgs[error.code] || 'Could not get location.';
-      document.getElementById('loc-btn-text').textContent = '📍 Use my location';
-      document.getElementById('loc-spinner').classList.add('hidden');
-      document.getElementById('location-btn').disabled = false;
-
-      // Show demo clinics anyway
-      const demoClinics = [
-        { name: 'Mpower — The Centre', address: 'Bandra West, Mumbai', rating: 4.8, distance: '1.2 km', phone: '+91-22-2655-3344' },
-        { name: 'Vandrevala Foundation', address: 'Andheri East, Mumbai', rating: 4.6, distance: '2.8 km', phone: '+91-1860-2662-345' },
-        { name: 'iCall Counselling Centre', address: 'TISS, Deonar, Mumbai', rating: 4.9, distance: '3.5 km', phone: '+91-9152987821' }
-      ];
-      renderClinics(demoClinics);
-      showToast('Showing demo clinics for Mumbai 🏥');
-    },
-    { timeout: 10000, enableHighAccuracy: true }
-  );
+  }, () => {
+    alert("Location not allowed");
+  });
 }
+
+/* 🏥 DEMO CLINICS */
+function showClinics() {
+  const clinics = [
+    { name: "MindCare Clinic", address: "Pune", rating: 4.8 },
+    { name: "Wellness Center", address: "Mumbai", rating: 4.6 },
+    { name: "Healing Minds", address: "Delhi", rating: 4.7 }
+  ];
+
+  let html = "";
+
+  clinics.forEach(c => {
+    html += `
+      <div class="card clinic-card">
+        <h3>🏥 ${c.name}</h3>
+        <p>📍 ${c.address}</p>
+        <p>⭐ ${c.rating}</p>
+      </div>
+      <br>
+    `;
+  });
+
+  document.getElementById("clinics-area").innerHTML = html;
+}
+
+/* 🚪 LOGOUT */
+function logout() {
+  localStorage.clear();
+  window.location.href = "index.html";
+}
+
 </script>
 
 </body>
