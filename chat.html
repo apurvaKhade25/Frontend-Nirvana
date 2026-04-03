@@ -5,6 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Nirvana — AI Companion</title>
   <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    /* ── Format Gemini AI response text nicely ── */
+    .ai-text h1, .ai-text h2, .ai-text h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--teal-dark);
+      margin: 10px 0 6px;
+    }
+
+    .ai-text p {
+      margin-bottom: 8px;
+      color: var(--teal-dark);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .ai-text ul, .ai-text ol {
+      padding-left: 18px;
+      margin-bottom: 8px;
+    }
+
+    .ai-text li {
+      font-size: 14px;
+      color: var(--teal-dark);
+      line-height: 1.7;
+      margin-bottom: 4px;
+    }
+
+    .ai-text strong, .ai-text b {
+      font-weight: 600;
+      color: var(--teal-dark);
+    }
+
+    .ai-text em, .ai-text i {
+      font-style: italic;
+    }
+
+    .ai-text code {
+      background: rgba(61,139,117,0.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    /* Remove bottom margin from last element */
+    .ai-text > *:last-child { margin-bottom: 0; }
+  </style>
 </head>
 <body>
 
@@ -12,7 +59,7 @@
 
 <div class="page-wrapper">
 
-  <!-- SIDEBAR -->
+  <!-- ══ SIDEBAR ══ -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <span class="logo-text">Nirvana</span>
@@ -37,57 +84,96 @@
       <a href="clinics.html"   class="nav-item"><span class="nav-icon">🏥</span> Find Clinics</a>
     </nav>
     <div class="sidebar-footer">
-      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Log out</a>
+      <a href="#" class="nav-item" onclick="logout()">
+        <span class="nav-icon">🚪</span> Log out
+      </a>
     </div>
   </aside>
 
-  <!-- MAIN -->
-  <main class="main-content" style="padding:0;display:flex;flex-direction:column;height:100vh;">
+  <!-- ══ MAIN ══ -->
+  <main class="main-content"
+    style="padding:0;display:flex;flex-direction:column;height:100vh;">
 
     <!-- Chat header -->
-    <div style="padding:24px 32px 20px;border-bottom:1px solid var(--cream-dark);background:var(--white);flex-shrink:0;">
+    <div style="padding:20px 32px;border-bottom:1px solid var(--cream-dark);
+      background:var(--white);flex-shrink:0;">
       <div class="flex-between">
         <div class="flex-center gap-12">
-          <div style="width:44px;height:44px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:20px;">🤖</div>
+          <div style="width:44px;height:44px;border-radius:50%;background:var(--navy);
+            display:flex;align-items:center;justify-content:center;font-size:20px;">🤖</div>
           <div>
-            <div style="font-size:15px;font-weight:500;color:var(--text-dark);">Nirvana AI Companion</div>
-            <div style="font-size:12px;color:var(--success);display:flex;align-items:center;gap:5px;">
-              <span style="width:7px;height:7px;border-radius:50%;background:var(--success);display:inline-block;"></span>
-              Online — aware of your mood history
+            <div style="font-size:15px;font-weight:500;color:var(--text-dark);">
+              Nirvana AI Companion
+            </div>
+            <div style="font-size:12px;color:var(--success);
+              display:flex;align-items:center;gap:5px;">
+              <span style="width:7px;height:7px;border-radius:50%;
+                background:var(--success);display:inline-block;"></span>
+              Online — powered by Gemini AI
             </div>
           </div>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="clearChat()">Clear chat</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="loadHistory()">
+            📜 History
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="clearChat()">
+            🗑️ Clear
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Messages area -->
-    <div id="chat-messages" style="flex:1;overflow-y:auto;padding:24px 32px;display:flex;flex-direction:column;gap:16px;">
+    <div id="chat-messages"
+      style="flex:1;overflow-y:auto;padding:24px 32px;
+      display:flex;flex-direction:column;gap:16px;">
+
       <!-- Welcome message -->
       <div class="chat-message ai">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🤖</div>
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--navy);
+          display:flex;align-items:center;justify-content:center;
+          font-size:14px;flex-shrink:0;">🤖</div>
         <div>
           <div class="chat-bubble">
-            Hi! I'm your Nirvana AI companion. I'm here to listen, support, and talk through anything on your mind. I can see your recent mood history and journal emotions so I can give you personalised responses.<br><br>How are you feeling today? 🌿
+            <div class="ai-text">
+              <p>Hi! I'm your <strong>Nirvana AI Companion</strong>, powered by Gemini. 🌿</p>
+              <p>I'm here to listen, support, and talk through anything on your mind. How are you feeling today?</p>
+            </div>
           </div>
           <div class="chat-time" id="welcome-time"></div>
         </div>
       </div>
+
     </div>
 
     <!-- Suggested prompts -->
-    <div id="suggestions" style="padding:0 32px 12px;display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;">
-      <button class="btn btn-ghost btn-sm" onclick="useSuggestion(this)">I've been feeling anxious</button>
-      <button class="btn btn-ghost btn-sm" onclick="useSuggestion(this)">Help me calm down</button>
-      <button class="btn btn-ghost btn-sm" onclick="useSuggestion(this)">I need some motivation</button>
-      <button class="btn btn-ghost btn-sm" onclick="useSuggestion(this)">Tell me a breathing exercise</button>
+    <div id="suggestions"
+      style="padding:0 32px 12px;display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;">
+      <button class="btn btn-ghost btn-sm" onclick="useSuggestion(this)">
+        I've been feeling anxious
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="useSuggestion(this)">
+        Help me calm down
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="useSuggestion(this)">
+        I need some motivation
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="useSuggestion(this)">
+        Give me a breathing exercise
+      </button>
     </div>
 
     <!-- Input area -->
-    <div class="chat-input-area" style="border-radius:0;flex-shrink:0;padding:16px 32px 20px;">
-      <textarea id="chat-input" rows="1" placeholder="Type your message..."
+    <div class="chat-input-area"
+      style="border-radius:0;flex-shrink:0;padding:16px 32px 20px;">
+      <textarea
+        id="chat-input"
+        rows="1"
+        placeholder="Type your message... (Enter to send, Shift+Enter for new line)"
         onkeydown="handleKey(event)"
-        oninput="autoResize(this)"></textarea>
+        oninput="autoResize(this)">
+      </textarea>
       <button class="send-btn" onclick="sendMessage()" id="send-btn">➤</button>
     </div>
 
@@ -95,6 +181,9 @@
 </div>
 
 <script>
+// ════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════
 const API_BASE = 'http://localhost:8080';
 const token    = localStorage.getItem('nirvana_token');
 const userStr  = localStorage.getItem('nirvana_user');
@@ -103,27 +192,42 @@ if (!token) window.location.href = 'index.html';
 
 const user = userStr ? JSON.parse(userStr) : { name: 'Friend' };
 
-document.getElementById('sidebar-name').textContent = user.name;
-document.getElementById('sidebar-avatar').textContent = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
-document.getElementById('welcome-time').textContent = new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+document.getElementById('sidebar-name').textContent =
+  user.name;
+document.getElementById('sidebar-avatar').textContent =
+  user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+document.getElementById('welcome-time').textContent =
+  new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
+// ════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════
 function logout() {
   localStorage.removeItem('nirvana_token');
   localStorage.removeItem('nirvana_user');
   window.location.href = 'index.html';
 }
 
-function showToast(msg, type='success') {
+function showToast(msg, type = 'success') {
   const c = document.getElementById('toast-container');
   const t = document.createElement('div');
-  t.className = `toast ${type==='error'?'error':''}`;
-  t.innerHTML = `<span>${type==='error'?'❌':'✅'}</span><span>${msg}</span>`;
+  t.className = `toast ${type === 'error' ? 'error' : ''}`;
+  t.innerHTML = `<span>${type === 'error' ? '❌' : '✅'}</span><span>${msg}</span>`;
   c.appendChild(t);
-  setTimeout(() => { t.style.animation = 'toastOut 0.3s ease forwards'; setTimeout(() => t.remove(), 300); }, 3500);
+  setTimeout(() => {
+    t.style.animation = 'toastOut 0.3s ease forwards';
+    setTimeout(() => t.remove(), 300);
+  }, 3500);
 }
 
-// Conversation history for context
-let conversationHistory = [];
+function getTime() {
+  return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+}
+
+function scrollToBottom() {
+  const area = document.getElementById('chat-messages');
+  area.scrollTop = area.scrollHeight;
+}
 
 function autoResize(el) {
   el.style.height = 'auto';
@@ -137,41 +241,92 @@ function handleKey(e) {
   }
 }
 
-function getTime() {
-  return new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+// ════════════════════════════════════════════
+// FORMAT GEMINI RESPONSE
+// Gemini returns markdown-like text with **bold**,
+// *italic*, bullet points etc. This converts it to HTML
+// ════════════════════════════════════════════
+function formatGeminiText(text) {
+  if (!text) return '';
+
+  let html = text
+    // Bold **text** or __text__
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.*?)__/g, '<strong>$1</strong>')
+    // Italic *text* or _text_
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/_(.*?)_/g, '<em>$1</em>')
+    // Headers ### ## #
+    .replace(/^### (.*?)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.*?)$/gm,  '<h2>$1</h2>')
+    .replace(/^# (.*?)$/gm,   '<h1>$1</h1>')
+    // Bullet points - or *
+    .replace(/^[\-\*] (.*?)$/gm, '<li>$1</li>')
+    // Numbered list 1. 2. etc
+    .replace(/^\d+\. (.*?)$/gm, '<li>$1</li>')
+    // Code `text`
+    .replace(/`(.*?)`/g, '<code>$1</code>')
+    // Line breaks
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br/>');
+
+  // Wrap li items in ul
+  html = html.replace(/(<li>.*?<\/li>(\s*<br\/>)?)+/gs, (match) => {
+    return '<ul>' + match.replace(/<br\/>/g, '') + '</ul>';
+  });
+
+  // Wrap in paragraph if not already wrapped
+  if (!html.startsWith('<h') && !html.startsWith('<ul') && !html.startsWith('<p')) {
+    html = '<p>' + html + '</p>';
+  }
+
+  return html;
 }
 
-function scrollToBottom() {
-  const area = document.getElementById('chat-messages');
-  area.scrollTop = area.scrollHeight;
-}
-
+// ════════════════════════════════════════════
+// APPEND MESSAGE TO CHAT
+// ════════════════════════════════════════════
 function appendMessage(role, text) {
-  const area = document.getElementById('chat-messages');
-  const isUser = role === 'user';
-  const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+  const area    = document.getElementById('chat-messages');
+  const isUser  = role === 'user';
+  const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   const div = document.createElement('div');
   div.className = `chat-message ${isUser ? 'user' : 'ai'} fade-in`;
+
+  // For AI messages — format the Gemini markdown text
+  const bubbleContent = isUser
+    ? text.replace(/\n/g, '<br/>')
+    : `<div class="ai-text">${formatGeminiText(text)}</div>`;
+
   div.innerHTML = `
-    <div style="width:32px;height:32px;border-radius:50%;background:${isUser ? 'var(--teal-dark)' : 'var(--navy)'};display:flex;align-items:center;justify-content:center;font-size:${isUser ? '12px' : '14px'};color:${isUser ? 'var(--teal-light)' : 'white'};font-weight:500;flex-shrink:0;">
+    <div style="width:32px;height:32px;border-radius:50%;
+      background:${isUser ? 'var(--teal-dark)' : 'var(--navy)'};
+      display:flex;align-items:center;justify-content:center;
+      font-size:${isUser ? '12px' : '14px'};
+      color:${isUser ? 'var(--teal-light)' : 'white'};
+      font-weight:500;flex-shrink:0;">
       ${isUser ? initials : '🤖'}
     </div>
-    <div>
-      <div class="chat-bubble">${text.replace(/\n/g, '<br/>')}</div>
+    <div style="max-width:calc(100% - 48px);">
+      <div class="chat-bubble">${bubbleContent}</div>
       <div class="chat-time">${getTime()}</div>
     </div>`;
+
   area.appendChild(div);
   scrollToBottom();
 }
 
+// Typing indicator
 function showTyping() {
   const area = document.getElementById('chat-messages');
-  const div = document.createElement('div');
+  const div  = document.createElement('div');
   div.className = 'chat-message ai fade-in';
-  div.id = 'typing-bubble';
+  div.id        = 'typing-bubble';
   div.innerHTML = `
-    <div style="width:32px;height:32px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🤖</div>
+    <div style="width:32px;height:32px;border-radius:50%;background:var(--navy);
+      display:flex;align-items:center;justify-content:center;
+      font-size:14px;flex-shrink:0;">🤖</div>
     <div class="typing-indicator">
       <div class="typing-dot"></div>
       <div class="typing-dot"></div>
@@ -186,67 +341,152 @@ function removeTyping() {
   if (t) t.remove();
 }
 
+// ════════════════════════════════════════════
+// SUGGESTION CHIPS
+// ════════════════════════════════════════════
 function useSuggestion(btn) {
-  document.getElementById('chat-input').value = btn.textContent;
+  document.getElementById('chat-input').value = btn.textContent.trim();
   document.getElementById('suggestions').style.display = 'none';
   sendMessage();
 }
 
+// ════════════════════════════════════════════
+// CLEAR CHAT
+// ════════════════════════════════════════════
 function clearChat() {
   conversationHistory = [];
   const area = document.getElementById('chat-messages');
   area.innerHTML = `
     <div class="chat-message ai">
-      <div style="width:32px;height:32px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🤖</div>
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--navy);
+        display:flex;align-items:center;justify-content:center;
+        font-size:14px;flex-shrink:0;">🤖</div>
       <div>
-        <div class="chat-bubble">Chat cleared! I'm ready to listen again. How are you feeling? 🌿</div>
+        <div class="chat-bubble">
+          <div class="ai-text">
+            <p>Chat cleared! I'm ready to listen again. How are you feeling? 🌿</p>
+          </div>
+        </div>
         <div class="chat-time">${getTime()}</div>
       </div>
     </div>`;
   document.getElementById('suggestions').style.display = 'flex';
 }
 
+// ════════════════════════════════════════════
+// LOAD CHAT HISTORY FROM BACKEND
+// Endpoint: GET /chatbot/history
+// ════════════════════════════════════════════
+async function loadHistory() {
+  showToast('Loading chat history...');
+
+  try {
+    const res  = await fetch(`${API_BASE}/chatbot/history`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+
+    // data should be array of { role, message/content }
+    const messages = Array.isArray(data) ? data : (data.history || data.messages || []);
+
+    if (messages.length === 0) {
+      showToast('No chat history found.', 'error');
+      return;
+    }
+
+    // Clear current and rebuild from history
+    const area = document.getElementById('chat-messages');
+    area.innerHTML = '';
+    conversationHistory = [];
+
+    messages.forEach(m => {
+      const role    = m.role === 'user' ? 'user' : 'ai';
+      const content = m.message || m.content || m.text || '';
+      appendMessage(role, content);
+      conversationHistory.push({ role: m.role, content });
+    });
+
+    showToast('Chat history loaded! 📜');
+
+  } catch (e) {
+    showToast('Could not load history. Backend may be offline.', 'error');
+  }
+}
+
+// ════════════════════════════════════════════
+// SEND MESSAGE
+// Endpoint: POST /chatbot
+// Body: { message: string }
+// ════════════════════════════════════════════
+let conversationHistory = [];
+
 async function sendMessage() {
   const input = document.getElementById('chat-input');
   const text  = input.value.trim();
   if (!text) return;
 
-  // Hide suggestions after first message
+  // Hide suggestion chips after first message
   document.getElementById('suggestions').style.display = 'none';
 
-  input.value = '';
+  // Clear input
+  input.value        = '';
   input.style.height = 'auto';
 
+  // Show user message
   appendMessage('user', text);
   conversationHistory.push({ role: 'user', content: text });
 
+  // Disable send while waiting
   document.getElementById('send-btn').disabled = true;
   showTyping();
 
   try {
-    const res = await fetch(`${API_BASE}/chat`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history: conversationHistory })
+    // ── CORRECT ENDPOINT: POST /chatbot ──
+    const res = await fetch(`${API_BASE}/chatbot`, {
+      method:  'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type':  'application/json'
+      },
+      body: JSON.stringify({
+        message: text
+        // Add history if your friend's backend supports it:
+        // history: conversationHistory
+      })
     });
+
+    if (!res.ok) {
+      throw new Error(`Server error: ${res.status}`);
+    }
 
     const data = await res.json();
     removeTyping();
 
-    const reply = data.reply || data.message || 'I hear you. Tell me more.';
+    // ── Handle different response formats your friend may send ──
+    // Try all common field names
+    const reply =
+      data.reply    ||
+      data.message  ||
+      data.response ||
+      data.text     ||
+      data.answer   ||
+      'I hear you. Tell me more.';
+
     appendMessage('ai', reply);
     conversationHistory.push({ role: 'assistant', content: reply });
 
   } catch (e) {
-    // Demo AI responses when backend not ready
     removeTyping();
+    console.warn('Chatbot API error:', e.message);
 
+    // ── Demo responses when backend not ready ──
     const demoReplies = [
       `I hear you, ${user.name.split(' ')[0]}. That sounds like a lot to carry. Can you tell me more about what's been making you feel this way?`,
-      "It's okay to feel that way. Remember, every emotion — even difficult ones — is valid and temporary. Have you tried the 4-7-8 breathing technique? Inhale for 4 seconds, hold for 7, exhale for 8.",
-      "Thank you for sharing that with me. Based on what you've told me, it sounds like you're under a lot of pressure right now. What's one small thing that usually brings you comfort?",
-      "I'm really glad you're talking about this. Sometimes just putting our feelings into words can help us process them. What feels most heavy on your heart right now?",
-      "You're doing better than you think. The fact that you're here, reflecting on your emotions, shows real self-awareness. How long have you been feeling like this?"
+      "It's okay to feel that way. Every emotion — even difficult ones — is valid and temporary.\n\n**Try the 4-7-8 breathing technique:**\n- Inhale for **4 seconds**\n- Hold for **7 seconds**\n- Exhale for **8 seconds**\n\nRepeat 3 times. 🌿",
+      "Thank you for sharing that with me. It sounds like you're under a lot of pressure right now.\n\nWhat's **one small thing** that usually brings you comfort?",
+      "I'm really glad you're talking about this. Sometimes just putting our feelings into words helps us process them.\n\nWhat feels most heavy on your heart right now?",
+      "You're doing **better than you think**. The fact that you're here, reflecting on your emotions, shows real self-awareness. 💚\n\nHow long have you been feeling like this?"
     ];
 
     const reply = demoReplies[conversationHistory.length % demoReplies.length];
