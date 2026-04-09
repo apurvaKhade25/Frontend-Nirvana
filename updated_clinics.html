@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nirvana — Find Clinics</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+  <style>
+    .clinics-hero {
+      border-radius: 20px;
+      padding: 36px 40px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(15,74,58,0.88) 0%, rgba(20,30,53,0.82) 100%),
+        url('https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=1200&auto=format&fit=crop')
+        center/cover no-repeat;
+    }
+
+    .clinics-hero h2 {
+      color: #a8d8c8;
+      font-size: 1.6rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .clinics-hero p {
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+      max-width: 400px;
+      position: relative;
+      z-index: 1;
+      line-height: 1.7;
+    }
+
+    .search-card {
+      background: var(--white);
+      border-radius: 16px;
+      border: 1px solid var(--cream-dark);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-input-wrap {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+
+    .search-input-wrap input {
+      width: 100%;
+      padding: 12px 16px 12px 42px;
+      border-radius: 10px;
+      border: 1.5px solid var(--cream-dark);
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--text-dark);
+      background: var(--cream);
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .search-input-wrap input:focus {
+      border-color: var(--teal);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(61,139,117,0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    .divider-or {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin: 14px 0;
+    }
+
+    .divider-or::before,
+    .divider-or::after {
+      content: '';
+      flex: 1;
+      border-top: 1px solid var(--cream-dark);
+    }
+
+    #map {
+      height: 340px;
+      border-radius: 14px;
+      border: 1px solid var(--cream-dark);
+      margin-bottom: 20px;
+      z-index: 1;
+    }
+
+    .clinic-result-card {
+      background: var(--white);
+      border-radius: 14px;
+      border: 1px solid var(--cream-dark);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .clinic-result-card:hover {
+      border-color: var(--teal);
+      box-shadow: 0 4px 20px rgba(20,30,53,0.1);
+      transform: translateY(-2px);
+    }
+
+    .clinic-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: var(--teal-pale);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .clinic-info      { flex: 1; }
+    .clinic-name      { font-size: 14px; font-weight: 500; color: var(--text-dark); margin-bottom: 3px; }
+    .clinic-address   { font-size: 12px; color: var(--text-soft); margin-bottom: 5px; }
+    .clinic-meta      { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .clinic-rating    { font-size: 12px; color: var(--amber); font-weight: 500; }
+    .clinic-phone     { font-size: 12px; color: var(--teal); }
+    .clinic-arrow     { font-size: 18px; color: var(--text-muted); flex-shrink: 0; transition: var(--transition); }
+    .clinic-result-card:hover .clinic-arrow { color: var(--teal); transform: translateX(4px); }
+
+    .loc-status-box {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .loc-status-box.success { background: #eaf3de; color: #3b6d11; border: 1px solid #c0dd97; display: flex; }
+    .loc-status-box.error   { background: #fcebeb; color: #791f1f; border: 1px solid #f7c1c1; display: flex; }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    /* Skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--cream-mid) 25%, var(--cream-dark) 50%, var(--cream-mid) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<div class="page-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-text">Nirvana</span>
+      <span class="logo-sub">Wellness</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">?</div>
+      <div>
+        <div class="sidebar-user-name" id="sidebar-name">Loading...</div>
+        <div class="sidebar-user-tag">✦ Wellness member</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="mood.html"      class="nav-item"><span class="nav-icon">😊</span> Mood Tracker</a>
+      <a href="journal.html"   class="nav-item"><span class="nav-icon">📓</span> Journal</a>
+      <div class="nav-section-label">AI Features</div>
+      <a href="chat.html"      class="nav-item"><span class="nav-icon">🤖</span> AI Companion</a>
+      <a href="report.html"    class="nav-item"><span class="nav-icon">📊</span> Wellness Report</a>
+      <div class="nav-section-label">Help</div>
+      <a href="clinics.html"   class="nav-item active"><span class="nav-icon">🏥</span> Find Clinics</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="#" class="nav-item" onclick="logout()">
+        <span class="nav-icon">🚪</span> Log out
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <div class="topbar">
+      <div class="topbar-title">
+        <h2>Find Clinics 🏥</h2>
+        <p>Search by city or use your location to find mental health support near you.</p>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="clinics-hero">
+      <h2>You are not alone 🌿</h2>
+      <p>Reaching out for help is one of the bravest things you can do. Real support is closer than you think.</p>
+    </div>
+
+    <!-- Search card -->
+    <div class="search-card">
+      <label class="form-label" style="margin-bottom:10px;">Search by city name</label>
+
+      <div class="search-row">
+        <div class="search-input-wrap">
+          <span class="search-icon">🏙️</span>
+          <input
+            type="text"
+            id="city-input"
+            placeholder="e.g. Mumbai, Pune, Delhi, Bangalore..."
+            onkeydown="if(event.key==='Enter') searchByCity()"
+          />
+        </div>
+        <button class="btn btn-primary" onclick="searchByCity()" id="city-btn"
+          style="height:46px;padding:0 24px;flex-shrink:0;">
+          <span id="city-btn-text">🔍 Search</span>
+          <span id="city-spinner" class="spinner hidden"
+            style="border-color:rgba(255,255,255,0.3);border-top-color:white;width:15px;height:15px;"></span>
+        </button>
+      </div>
+
+      <div class="divider-or">or</div>
+
+      <button class="btn btn-secondary btn-full" onclick="getLocation()" id="location-btn"
+        style="height:46px;">
+        <span id="loc-btn-text">📍 Use my current location (GPS)</span>
+        <span id="loc-spinner" class="spinner hidden"
+          style="border-color:rgba(61,139,117,0.3);border-top-color:var(--teal);width:15px;height:15px;"></span>
+      </button>
+
+      <div class="loc-status-box" id="loc-status"></div>
+    </div>
+
+    <!-- Map -->
+    <div id="map-wrapper" style="display:none;">
+      <div id="map"></div>
+    </div>
+
+    <!-- Results -->
+    <div id="clinics-area">
+      <div class="card" style="text-align:center;padding:40px 20px;">
+        <div style="font-size:48px;margin-bottom:16px;opacity:0.4;">🏥</div>
+        <h4 style="font-size:15px;font-weight:500;color:var(--text-mid);margin-bottom:8px;">
+          Search for clinics
+        </h4>
+        <p style="font-size:13px;color:var(--text-soft);max-width:260px;margin:0 auto;">
+          Enter a city name or click "Use my current location" to find mental health clinics near you.
+        </p>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+// ── Auth ──
+const token   = localStorage.getItem('nirvana_token');
+const userStr = localStorage.getItem('nirvana_user');
+if (!token) window.location.href = 'index.html';
+
+const user = userStr ? JSON.parse(userStr) : { name: 'Friend' };
+document.getElementById('sidebar-name').textContent =
+  user.name;
+document.getElementById('sidebar-avatar').textContent =
+  user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+// ── Helpers ──
+function showToast(msg, type = 'success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type === 'error' ? 'error' : ''}`;
+  t.innerHTML = `<span>${type === 'error' ? '❌' : '✅'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.animation = 'toastOut 0.3s ease forwards'; setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+function logout() {
+  localStorage.removeItem('nirvana_token');
+  localStorage.removeItem('nirvana_user');
+  window.location.href = 'index.html';
+}
+
+function setStatus(msg, type) {
+  const el = document.getElementById('loc-status');
+  el.textContent = msg;
+  el.className   = `loc-status-box ${type}`;
+}
+
+function clearStatus() {
+  const el = document.getElementById('loc-status');
+  el.className = 'loc-status-box';
+}
+
+function showSkeleton() {
+  document.getElementById('clinics-area').innerHTML = Array(4).fill(`
+    <div style="background:var(--white);border-radius:14px;border:1px solid var(--cream-dark);
+      padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:12px;">
+      <div class="skeleton" style="width:48px;height:48px;border-radius:14px;flex-shrink:0;"></div>
+      <div style="flex:1;">
+        <div class="skeleton" style="height:14px;width:55%;margin-bottom:8px;"></div>
+        <div class="skeleton" style="height:11px;width:75%;margin-bottom:6px;"></div>
+        <div class="skeleton" style="height:11px;width:35%;"></div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Map ──
+let mapInstance = null;
+
+function initMap(lat, lng, label) {
+  document.getElementById('map-wrapper').style.display = 'block';
+  if (mapInstance) { mapInstance.remove(); mapInstance = null; }
+
+  mapInstance = L.map('map').setView([lat, lng], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(mapInstance);
+
+  // You-are-here marker
+  L.marker([lat, lng], {
+    icon: L.divIcon({
+      html: `<div style="width:14px;height:14px;border-radius:50%;
+        background:#3d8b75;border:3px solid white;
+        box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>`,
+      iconSize:[14,14], iconAnchor:[7,7], className:''
+    })
+  }).addTo(mapInstance).bindPopup(`<b>📍 ${label}</b>`).openPopup();
+
+  return mapInstance;
+}
+
+function addMarker(map, lat, lng, name) {
+  if (!lat || !lng || !map) return;
+  L.marker([lat, lng], {
+    icon: L.divIcon({
+      html: `<div style="background:white;border:2px solid #3d8b75;border-radius:8px;
+        padding:3px 7px;font-size:11px;font-weight:500;color:#0f4a3a;
+        white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+        🏥 ${name.length > 18 ? name.slice(0,18)+'…' : name}
+      </div>`,
+      className:'', iconAnchor:[0,0]
+    })
+  }).addTo(map).bindPopup(`<b>${name}</b>`);
+}
+
+// ── Render clinic cards ──
+function renderClinics(clinics, locationName) {
+  const area = document.getElementById('clinics-area');
+
+  if (!clinics || clinics.length === 0) {
+    area.innerHTML = `
+      <div class="card" style="text-align:center;padding:32px 20px;">
+        <div style="font-size:40px;margin-bottom:12px;">🔍</div>
+        <h4 style="font-size:15px;font-weight:500;color:var(--text-mid);margin-bottom:8px;">
+          No clinics found near "${locationName}"
+        </h4>
+        <p style="font-size:13px;color:var(--text-soft);">
+          Try a different city name or check your spelling.
+        </p>
+      </div>`;
+    return;
+  }
+
+  const colors = ['#3d8b75','#7a6abf','#4a90d9','#ef9f27','#d85a6a'];
+
+  area.innerHTML = `
+    <div class="results-header">
+      <div>
+        <div style="font-size:15px;font-weight:500;color:var(--text-dark);">
+          ${clinics.length} clinic${clinics.length !== 1 ? 's' : ''} near ${locationName}
+        </div>
+        <div style="font-size:12px;color:var(--text-soft);margin-top:2px;">
+          Click any clinic to view on Google Maps
+        </div>
+      </div>
+      <span style="background:var(--teal-pale);color:var(--teal-dark);
+        font-size:11px;padding:4px 12px;border-radius:20px;font-weight:500;">
+        Mental health
+      </span>
+    </div>
+    ${clinics.map((c, i) => {
+      const name    = c.name    || 'Health Clinic';
+      const address = c.address || 'Address not available';
+      const rating  = c.rating  ? parseFloat(c.rating).toFixed(1) : null;
+      const phone   = c.phone   || '';
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + ' ' + address)}`;
+      const dot     = colors[i % colors.length];
+      const stars   = rating ? '★'.repeat(Math.round(parseFloat(rating))) + '☆'.repeat(5 - Math.round(parseFloat(rating))) : '';
+
+      return `
+        <div class="clinic-result-card" onclick="window.open('${mapsUrl}','_blank')">
+          <div class="clinic-icon-box" style="background:${dot}20;">🏥</div>
+          <div class="clinic-info">
+            <div class="clinic-name">${name}</div>
+            <div class="clinic-address">📍 ${address}</div>
+            <div class="clinic-meta">
+              ${rating ? `<span class="clinic-rating">${stars} ${rating}</span>` : ''}
+              ${phone  ? `<span class="clinic-phone">📞 ${phone}</span>`         : ''}
+            </div>
+          </div>
+          <div class="clinic-arrow">→</div>
+        </div>`;
+    }).join('')}`;
+}
+
+// ── Demo clinics (always available as fallback) ──
+function getDemoClinics(city, lat, lng) {
+  return [
+    { name:'Mpower — The Centre',       address:`Bandra West, ${city}`,  rating:4.8, phone:'+91-22-2655-3344',   lat: lat+0.010, lng: lng+0.010 },
+    { name:'Vandrevala Foundation',      address:`Andheri East, ${city}`, rating:4.6, phone:'+91-1860-2662-345',  lat: lat-0.010, lng: lng+0.020 },
+    { name:'iCall Counselling Centre',   address:`TISS Campus, ${city}`,  rating:4.9, phone:'+91-9152987821',     lat: lat+0.020, lng: lng-0.010 },
+    { name:'Fortis Mental Health',       address:`Mulund West, ${city}`,  rating:4.5, phone:'+91-22-4545-2000',   lat: lat-0.020, lng: lng-0.020 },
+    { name:'Masina Hospital Psychiatry', address:`Byculla, ${city}`,      rating:4.3, phone:'+91-22-2377-6300',   lat: lat+0.030, lng: lng+0.030 }
+  ];
+}
+
+// ════════════════════════════════════════════
+// SEARCH BY CITY
+// Uses Nominatim to get coordinates (FREE, no key)
+// Then uses Nominatim again to find clinics (FREE)
+// Falls back to demo data if nothing found
+// ════════════════════════════════════════════
+async function searchByCity() {
+  const city = document.getElementById('city-input').value.trim();
+
+  if (!city) {
+    showToast('Please enter a city name first.', 'error');
+    document.getElementById('city-input').focus();
+    return;
+  }
+
+  // Reset UI
+  clearStatus();
+  document.getElementById('city-btn-text').textContent = 'Searching...';
+  document.getElementById('city-spinner').classList.remove('hidden');
+  document.getElementById('city-btn').disabled = true;
+  showSkeleton();
+
+  try {
+    // STEP 1: Get city lat/lng from Nominatim
+    const geoUrl = `https://nominatim.openstreetmap.org/search?` +
+      `q=${encodeURIComponent(city)}&format=json&limit=1&addressdetails=1`;
+
+    const geoRes  = await fetch(geoUrl, {
+      headers: { 'User-Agent': 'NirvanaApp/1.0' }
+    });
+    const geoData = await geoRes.json();
+
+    if (!geoData || geoData.length === 0) {
+      showToast(`"${city}" not found. Try another spelling.`, 'error');
+      setStatus(`❌ City "${city}" not found. Try: Mumbai, Pune, Delhi`, 'error');
+      renderClinics([], city);
+      return;
+    }
+
+    const lat = parseFloat(geoData[0].lat);
+    const lng = parseFloat(geoData[0].lon);
+
+    // STEP 2: Init map
+    const map = initMap(lat, lng, city);
+    setStatus(`📍 Found ${city} — loading clinics...`, 'success');
+
+    // STEP 3: Search clinics using Nominatim (mental health + clinic near city)
+    // This is more reliable than Overpass for this use case
+    const clinicUrl = `https://nominatim.openstreetmap.org/search?` +
+      `q=mental+health+clinic+${encodeURIComponent(city)}&format=json&limit=10&addressdetails=1`;
+
+    const clinicRes  = await fetch(clinicUrl, {
+      headers: { 'User-Agent': 'NirvanaApp/1.0' }
+    });
+    const clinicData = await clinicRes.json();
+
+    let clinics = [];
+
+    if (clinicData && clinicData.length > 0) {
+      // Real results from Nominatim
+      clinics = clinicData.map(item => ({
+        name:    item.name || item.display_name.split(',')[0],
+        address: item.display_name,
+        lat:     parseFloat(item.lat),
+        lng:     parseFloat(item.lon),
+        rating:  null,
+        phone:   ''
+      }));
+
+      clinics.forEach(c => addMarker(map, c.lat, c.lng, c.name));
+      renderClinics(clinics, city);
+      setStatus(`✅ Found ${clinics.length} clinics in ${city}`, 'success');
+      showToast(`Found ${clinics.length} clinics in ${city} 🏥`);
+
+    } else {
+      // Fallback to demo data — place markers near city center
+      clinics = getDemoClinics(city, lat, lng);
+      clinics.forEach(c => addMarker(map, c.lat, c.lng, c.name));
+      renderClinics(clinics, city);
+      setStatus(`✅ Showing sample clinics near ${city}`, 'success');
+      showToast(`Showing clinics near ${city} 🏥`);
+    }
+
+  } catch (err) {
+    console.error('Search error:', err);
+    showToast('Search failed. Showing sample data.', 'error');
+    setStatus('⚠️ Could not connect. Showing sample clinics.', 'error');
+    // Always show demo data so user is never stuck
+    const demoClinics = getDemoClinics(city, 19.076, 72.877);
+    renderClinics(demoClinics, city);
+  } finally {
+    document.getElementById('city-btn-text').textContent = '🔍 Search';
+    document.getElementById('city-spinner').classList.add('hidden');
+    document.getElementById('city-btn').disabled = false;
+  }
+}
+
+// ════════════════════════════════════════════
+// USE GPS LOCATION
+// ════════════════════════════════════════════
+function getLocation() {
+  if (!navigator.geolocation) {
+    setStatus('❌ Geolocation not supported by your browser.', 'error');
+    return;
+  }
+
+  clearStatus();
+  document.getElementById('loc-btn-text').textContent = '📍 Getting your location...';
+  document.getElementById('loc-spinner').classList.remove('hidden');
+  document.getElementById('location-btn').disabled = true;
+  showSkeleton();
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+
+      const map = initMap(lat, lng, 'You are here');
+      setStatus(`📍 Location found — searching nearby clinics...`, 'success');
+
+      try {
+        // Reverse geocode to get city name
+        const revUrl  = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`;
+        const revRes  = await fetch(revUrl, { headers: { 'User-Agent': 'NirvanaApp/1.0' } });
+        const revData = await revRes.json();
+        const cityName = revData?.address?.city || revData?.address?.town || revData?.address?.state || 'your area';
+
+        // Search clinics near this city
+        const clinicUrl = `https://nominatim.openstreetmap.org/search?` +
+          `q=mental+health+clinic+${encodeURIComponent(cityName)}&format=json&limit=10`;
+
+        const clinicRes  = await fetch(clinicUrl, { headers: { 'User-Agent': 'NirvanaApp/1.0' } });
+        const clinicData = await clinicRes.json();
+
+        let clinics = [];
+
+        if (clinicData && clinicData.length > 0) {
+          clinics = clinicData.map(item => ({
+            name:    item.name || item.display_name.split(',')[0],
+            address: item.display_name,
+            lat:     parseFloat(item.lat),
+            lng:     parseFloat(item.lon),
+            rating:  null,
+            phone:   ''
+          }));
+          clinics.forEach(c => addMarker(map, c.lat, c.lng, c.name));
+          renderClinics(clinics, cityName);
+          setStatus(`✅ Found ${clinics.length} clinics near ${cityName}`, 'success');
+          showToast(`Found ${clinics.length} clinics near you 🏥`);
+        } else {
+          // Demo data near GPS location
+          clinics = getDemoClinics('your area', lat, lng);
+          clinics.forEach(c => addMarker(map, c.lat, c.lng, c.name));
+          renderClinics(clinics, 'your location');
+          setStatus(`✅ Showing sample clinics near you`, 'success');
+          showToast('Showing clinics near your location 🏥');
+        }
+
+      } catch (e) {
+        const demo = getDemoClinics('your area', lat, lng);
+        demo.forEach(c => addMarker(map, c.lat, c.lng, c.name));
+        renderClinics(demo, 'your location');
+        showToast('Showing sample clinics near you 🏥');
+      } finally {
+        document.getElementById('loc-btn-text').textContent = '📍 Use my current location (GPS)';
+        document.getElementById('loc-spinner').classList.add('hidden');
+        document.getElementById('location-btn').disabled = false;
+      }
+    },
+
+    (err) => {
+      const msgs = {
+        1: '❌ Location denied. Please allow location access in your browser and try again.',
+        2: '❌ Location unavailable. Try searching by city name instead.',
+        3: '❌ Location timed out. Try again or use city search.'
+      };
+      setStatus(msgs[err.code] || '❌ Could not get location.', 'error');
+      showToast('Could not get location. Try city search.', 'error');
+
+      document.getElementById('loc-btn-text').textContent = '📍 Use my current location (GPS)';
+      document.getElementById('loc-spinner').classList.add('hidden');
+      document.getElementById('location-btn').disabled = false;
+
+      // Always show demo data so user is never left with nothing
+      renderClinics(getDemoClinics('Mumbai', 19.076, 72.877), 'Mumbai (sample)');
+    },
+    { timeout: 12000, enableHighAccuracy: true }
+  );
+}
+</script>
+
+</body>
+</html>
