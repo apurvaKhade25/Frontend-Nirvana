@@ -40,6 +40,15 @@
       <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Log out</a>
     </div>
   </aside>
+  <script>
+  // Fix sidebar user display
+  const _userStr = localStorage.getItem('nirvana_user');
+  let _user = {};
+  try { _user = _userStr ? JSON.parse(_userStr) : {}; } catch {}
+  const _name = _user.username || _user.name || _user.email?.split('@')[0] || 'Friend';
+  document.getElementById('sidebar-name').textContent = _name;
+  document.getElementById('sidebar-avatar').textContent = _name.slice(0,2).toUpperCase();
+</script>
 
   <!-- MAIN -->
   <main class="main-content">

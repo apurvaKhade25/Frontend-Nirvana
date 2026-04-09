@@ -1,7 +1,14 @@
 // ============================================
 // auth.js — Login & Signup Logic
 // ============================================
-
+(function cleanupInvalidTokens() {
+  const token = localStorage.getItem('nirvana_token');
+  if (token === 'demo-token-123' || token === null || token === 'undefined') {
+    console.warn('🧹 Clearing invalid token...');
+    localStorage.removeItem('nirvana_token');
+    localStorage.removeItem('nirvana_user');
+  }
+})();
 // ---- IMPORTANT: Change this when your friend gives you the backend URL ----
 const API_BASE = 'http://localhost:8080';
 // ---------------------------------------------------------------------------
@@ -119,7 +126,7 @@ async function handleLogin() {
       localStorage.setItem('nirvana_user', JSON.stringify({
       email: email,
       username: data.user?.username || email.split('@')[0],         //username
-      id: data.user?.id
+      id: data.user?.id || null
       }));
       showToast('Welcome back! 🌿');
       setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
@@ -147,15 +154,15 @@ async function handleLogin() {
 }
 }
 
-// ---- SIGNUP ----
+// ---- SIGNUP ----      edited 
 async function handleSignup() {
   clearErrors();
-  const username     = document.getElementById('signup-name').value.trim();     //username
-  const email    = document.getElementById('signup-email').value.trim();
+  const username = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
   let valid = true;
 
-  if (!username) {                                                                                                           //username
+  if (!username) {
     showError('signup-name', 'signup-name-err');
     valid = false;
   }
@@ -172,32 +179,36 @@ async function handleSignup() {
 
   if (!valid) return;
 
-  // Show spinner
   document.getElementById('signup-btn-text').textContent = 'Creating account...';
   document.getElementById('signup-spinner').classList.remove('hidden');
 
   try {
+    console.log('📝 Attempting registration:', { username, email, password: '***' });
+    
     const response = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, password })                     //username
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ username, email, password })
     });
 
-    const responseText= await response.text();
-    console.log('📦 Signup response received');
+    console.log('📡 Response status:', response.status);
+    const responseText = await response.text();
+    console.log('📦 Raw response:', responseText);
 
     let data;
     try {
       data = JSON.parse(responseText);
+      console.log('✅ Parsed response:', data);
     } catch (e) {
-      // Backend returned raw JWT token
       if (response.ok && responseText.includes('.')) {
         data = { token: responseText };
       } else {
-        throw new Error('Invalid response format');
+        throw new Error('Invalid response: ' + responseText);
       }
     }
-
 
     if (response.ok) {
       localStorage.setItem('nirvana_token', data.token);
@@ -205,27 +216,32 @@ async function handleSignup() {
       showToast('Account created! Welcome to Nirvana 🌿');
       setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
     } else {
-      showToast(data.message || 'Something went wrong. Try again.', 'error');
+      console.error('❌ Registration failed:', data);
+      showToast(data.message || 'Registration failed.', 'error');
     }
 
   } catch (err) {
-    // Demo mode when backend not ready
-    console.warn('Backend not connected. Using demo mode.');
-    const fakeUser = { username: username, email: email };                                //username
-    localStorage.setItem('nirvana_token', 'demo-token-123');
-    localStorage.setItem('nirvana_user', JSON.stringify(fakeUser));
-    showToast('Demo mode: account created! 🌿');
-    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+    // ⚠️ NO DEMO MODE HERE - SHOW REAL ERROR!
+    console.error('❌ Registration error:', err);
+    showToast('Error: ' + err.message, 'error');
   } finally {
     document.getElementById('signup-btn-text').textContent = 'Create account';
     document.getElementById('signup-spinner').classList.add('hidden');
   }
 }
 
+
+
 // If user is already logged in, skip login page
-if (localStorage.getItem('nirvana_token')) {
-  window.location.href = 'dashboard.html';
-}
+(function checkExistingSession() {
+  const token = localStorage.getItem('nirvana_token');
+  
+  // Only redirect if token exists AND is not a demo token
+  if (token && token !== 'demo-token-123' && token.includes('.')) {
+    console.log('✅ Valid token found, redirecting to dashboard...');
+    window.location.href = 'dashboard.html';
+  }
+})();
 
 // Allow pressing Enter to submit
 document.addEventListener('keydown', function(e) {

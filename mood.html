@@ -40,6 +40,15 @@
       <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Log out</a>
     </div>
   </aside>
+  <script>
+  // Fix sidebar user display
+  const _userStr = localStorage.getItem('nirvana_user');
+  let _user = {};
+  try { _user = _userStr ? JSON.parse(_userStr) : {}; } catch {}
+  const _name = _user.username || _user.name || _user.email?.split('@')[0] || 'Friend';
+  document.getElementById('sidebar-name').textContent = _name;
+  document.getElementById('sidebar-avatar').textContent = _name.slice(0,2).toUpperCase();
+</script>
 
   <!-- MAIN -->
   <main class="main-content">
@@ -58,7 +67,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">How are you feeling today?</div>
-            <div class="card-subtitle" id="form-date">Loading...</div>
+            <div class="card-subtitle" id="form-date"></div>
           </div>
           <span class="icon-box icon-box-teal icon-box-lg">😊</span>
         </div>
@@ -276,7 +285,6 @@ async function loadMoods() {
   //     { score: 6, label: 'grateful', note: 'Spent quality time with family.',    created_at: new Date(Date.now() - 345600000).toISOString() }
   //   ]);
   // }
-
 
 async function logMood() {
   const score = parseInt(document.getElementById('mood-score').value);
