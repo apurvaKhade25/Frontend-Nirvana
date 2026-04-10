@@ -265,15 +265,35 @@ document.getElementById('view-modal').addEventListener('click', function(e) {
 
 let allJournals = [];
 
-async function loadJournals() {
+// async function loadJournals() {
+  // try {
+  //   const res = await fetch(`${API_BASE}/journal/history`, {
+  //     headers: { 'Authorization': `Bearer ${token}` }
+  //   });
+  //   const data = await res.json();
+  //   allJournals = data.journals || data || [];
+  //   renderJournals(allJournals);
+  // } catch (e) {
+  async function loadJournals() {
   try {
     const res = await fetch(`${API_BASE}/journal/history`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
+
+    if (!res.ok) {
+      console.warn('⚠️ Journal fetch failed:', res.status);
+      renderJournals([]);
+      return;
+    }
+
     const data = await res.json();
-    allJournals = data.journals || data || [];
+    allJournals = Array.isArray(data) ? data : (data.journals || []);
     renderJournals(allJournals);
   } catch (e) {
+    console.error('❌ Journal load error:', e);
+    renderJournals([]);
+  }
+}
     // Demo data
     allJournals = [
       {
@@ -296,8 +316,7 @@ async function loadJournals() {
       }
     ];
     renderJournals(allJournals);
-  }
-}
+    
 
 async function saveEntry() {
   const title   = document.getElementById('entry-title').value.trim();

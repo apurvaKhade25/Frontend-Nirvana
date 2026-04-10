@@ -219,7 +219,7 @@ const avg = (recent7.reduce((s, m) => s + (m.moodScore || 0), 0) / recent7.lengt
   // Mini chart
   const miniChart = document.getElementById('mini-chart');
   miniChart.innerHTML = recent7.map(m => {
-    const s = m.score || m.mood_score || 0;
+     const s = m.moodScore || 0;
     const h = Math.max(4, (s / 10) * 48);
     const c = s <= 3 ? '#d85a6a' : s <= 6 ? '#ef9f27' : '#3d8b75';
     return `<div style="flex:1;height:${h}px;background:${c};border-radius:3px 3px 0 0;opacity:0.8;"></div>`;
@@ -257,17 +257,24 @@ const avg = (recent7.reduce((s, m) => s + (m.moodScore || 0), 0) / recent7.lengt
 }
 
 async function loadMoods() {
-    try {
-        const res = await fetch(`${API_BASE}/mood/history`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
-        console.log('Mood data:', JSON.stringify(data)); // ← add this
-        renderHistory(Array.isArray(data) ? data : data.moods || []);
-    } catch (e) {
-        console.error('loadMoods error:', e);
-        renderHistory([]);
+  try {
+    const res = await fetch(`${API_BASE}/mood/history`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) {
+      console.warn('⚠️ Mood fetch failed:', res.status);
+      renderHistory([]);
+      return;
     }
+
+    const data = await res.json();
+    console.log('🎯 Mood data:', JSON.stringify(data));
+    renderHistory(Array.isArray(data) ? data : (data.moods || []));
+  } catch (e) {
+    console.error('❌ Mood load error:', e);
+    renderHistory([]);
+  }
 }
   // try {
   //   const res = await fetch(`${API_BASE}/mood/history`, {                 //history in mood

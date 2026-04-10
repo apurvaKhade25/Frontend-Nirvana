@@ -613,37 +613,70 @@ async function fetchDashboardData() {
   const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
   // Moods — ✅ correct endpoint
-  try {
+  // 
+  // Moods
+try {
     const res  = await fetch(`${API_BASE}/mood/history`, { headers });
+
+    // ✅ Handle non-ok responses explicitly
+    if (!res.ok) {
+        console.warn('⚠️ Mood fetch failed with status:', res.status);
+        renderMoodChart([]);
+        renderMoodCalendar([]);
+        return;
+    }
+
     const data = await res.json();
     const moods = Array.isArray(data) ? data : [];
     renderMoodChart(moods);
     renderMoodCalendar(moods);
-  } catch {
-    const demo = [
-      { moodScore:4, moodLabel:'anxious', loggedAt:new Date(Date.now()-518400000).toISOString() },
-      { moodScore:6, moodLabel:'calm',    loggedAt:new Date(Date.now()-432000000).toISOString() },
-      { moodScore:7, moodLabel:'happy',   loggedAt:new Date(Date.now()-345600000).toISOString() },
-      { moodScore:5, moodLabel:'tired',   loggedAt:new Date(Date.now()-259200000).toISOString() },
-      { moodScore:8, moodLabel:'happy',   loggedAt:new Date(Date.now()-172800000).toISOString() },
-      { moodScore:6, moodLabel:'calm',    loggedAt:new Date(Date.now()-86400000).toISOString()  },
-      { moodScore:7, moodLabel:'grateful',loggedAt:new Date(Date.now()).toISOString()            }
-    ];
-    renderMoodChart(demo);
-    renderMoodCalendar(demo);
-  }
+} catch (err) {
+    console.error('❌ Mood fetch error:', err);
+    renderMoodChart([]);
+    renderMoodCalendar([]);
+}
+  // } catch {
+  //   const demo = [
+  //     { moodScore:4, moodLabel:'anxious', loggedAt:new Date(Date.now()-518400000).toISOString() },
+  //     { moodScore:6, moodLabel:'calm',    loggedAt:new Date(Date.now()-432000000).toISOString() },
+  //     { moodScore:7, moodLabel:'happy',   loggedAt:new Date(Date.now()-345600000).toISOString() },
+  //     { moodScore:5, moodLabel:'tired',   loggedAt:new Date(Date.now()-259200000).toISOString() },
+  //     { moodScore:8, moodLabel:'happy',   loggedAt:new Date(Date.now()-172800000).toISOString() },
+  //     { moodScore:6, moodLabel:'calm',    loggedAt:new Date(Date.now()-86400000).toISOString()  },
+  //     { moodScore:7, moodLabel:'grateful',loggedAt:new Date(Date.now()).toISOString()            }
+  //   ];
+  //   renderMoodChart(demo);
+  //   renderMoodCalendar(demo);
+  // }
 
   // Journals — ✅ correct endpoint
-  try {
-    const res  = await fetch(`${API_BASE}/journal/history`, { headers });
+  // try {
+  //   const res  = await fetch(`${API_BASE}/journal/history`, { headers });
+  //   const data = await res.json();
+  //   renderJournals(Array.isArray(data) ? data : []);
+  // } catch {
+  //   renderJournals([
+  //     { title:'Morning thoughts',  content:'Felt calm after meditation. Ready to take on the day.', createdAt:new Date().toISOString() },
+  //     { title:'A tough afternoon', content:'Struggled to focus. Anxiety crept in about the presentation.', createdAt:new Date(Date.now()-86400000).toISOString() }
+  //   ]);
+  // }
+  // Journals
+try {
+    const res = await fetch(`${API_BASE}/journal/history`, { headers });
+
+    // ✅ Handle non-ok responses (401, 403, 500) explicitly
+    if (!res.ok) {
+        console.warn('⚠️ Journal fetch failed with status:', res.status);
+        renderJournals([]); // Show empty state, not demo data
+        return;
+    }
+
     const data = await res.json();
     renderJournals(Array.isArray(data) ? data : []);
-  } catch {
-    renderJournals([
-      { title:'Morning thoughts',  content:'Felt calm after meditation. Ready to take on the day.', createdAt:new Date().toISOString() },
-      { title:'A tough afternoon', content:'Struggled to focus. Anxiety crept in about the presentation.', createdAt:new Date(Date.now()-86400000).toISOString() }
-    ]);
-  }
+} catch (err) {
+    console.error('❌ Journal fetch error:', err);
+    renderJournals([]); // Show empty state cleanly
+}
 }
 
 // ── INIT ──────────────────────────────────────

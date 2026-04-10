@@ -211,10 +211,16 @@ async function handleSignup() {
     }
 
     if (response.ok) {
-      localStorage.setItem('nirvana_token', data.token);
-      localStorage.setItem('nirvana_user', JSON.stringify(data.user));
-      showToast('Account created! Welcome to Nirvana 🌿');
-      setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+  localStorage.setItem('nirvana_token', data.token);
+
+  // ✅ Safe user object — same pattern as login, never stores null
+  localStorage.setItem('nirvana_user', JSON.stringify({
+    email: email,
+    username: data.user?.username || username || email.split('@')[0],
+    id: data.user?.id || null
+  }));
+  showToast('Account created! Welcome to Nirvana 🌿');
+  setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
     } else {
       console.error('❌ Registration failed:', data);
       showToast(data.message || 'Registration failed.', 'error');
